@@ -1,5 +1,13 @@
 'use strict';
 
+const templates = {
+  articleLink: Handlebars.compile(document.querySelector('#template-article-link').innerHTML),
+  tagLink: Handlebars.compile(document.querySelector('#template-tag-link').innerHTML),
+  authorLink: Handlebars.compile(document.querySelector('#template-author-link').innerHTML),
+  tagCloudLink: Handlebars.compile(document.querySelector('#template-tagCloudLink').innerHTML),
+  authorLinkList: Handlebars.compile(document.querySelector('#template-authorLinkList').innerHTML)
+}
+
 const opt = {
   articleSelector: '.post',
   titleSelector: '.post-title',
@@ -50,7 +58,8 @@ function generateTitleLinks(customSelector = ''){
     /*[DONE] get the title from the title element */
     const articleTitle = article.querySelector(opt.titleSelector).innerHTML;
     /*[DONE] create HTML of the link */
-    const linkHTML = '<li><a href="#' + articleId + '"><span>' + articleTitle + '</span></a></li>';
+    const linkHTMLData = {id: articleId, title: articleTitle};
+    const linkHTML = templates.articleLink(linkHTMLData);
     /*[DONE] insert link into titleList */
     html = html + linkHTML;
   }
@@ -99,7 +108,8 @@ function generateTags(){
     /* START LOOP: for each tag */
     for(let tag of articleSplitedTags){
       /* generate HTML of the link */
-      const linkHTML = '<li><a href="#tag-' + tag + '">' + tag + '</a>&nbsp;</li>';
+      const linkHTMLData = {id: tag, title: tag};
+      const linkHTML = templates.tagLink(linkHTMLData);
       /* add generated code to html variable */
       html = html + linkHTML;
       /* [NEW] check if this link is NOT already in allTags */
@@ -119,16 +129,19 @@ function generateTags(){
   const tagList = document.querySelector('.tags');
   const tagsParams = calculateTagsParams(allTags);
   /* [NEW] create variable for all links HTML code */
-  let allTagsHTML = '';
+  const allTagsData = {tags: []};
   /* [NEW] START LOOP: for each tag in allTags: */
   for(let tag in allTags){
     /* [NEW] generate code of a link and add it in to allTagsHTML*/
-    const tagLinkHTML = '<li><a href="#tag-' + tag + '" class="' + calculateTagClass(allTags[tag], tagsParams) + '">' + tag + '</a></li>';
-    allTagsHTML += tagLinkHTML;
+    allTagsData.tags.push({
+      tag: tag,
+      count: allTags[tag],
+      className: calculateTagClass(allTags[tag], tagsParams)
+    });
     /* [NEW] END LOOP: for each tag in allTags: */
   }
   /* [NEW] add html from allTagsHTML to tagList */
-  tagList.innerHTML = allTagsHTML;
+  tagList.innerHTML = templates.tagCloudLink(allTagsData);
 }
 
 generateTags();
@@ -187,7 +200,8 @@ function generateAuthors(){
     /* get author name from data-author attribute */
     const authorName = article.getAttribute('data-author');
     /* generate HTML link code with right autor*/
-    const authorLink = 'by&nbsp;<a href="#author-' + authorName + '">' + authorName + '</a>';
+    const linkHTMLData = {id: authorName, title: authorName};
+    const authorLink = templates.authorLink(linkHTMLData);
     /* insert HTML of all authors in the author wrapper */
     authorsWraper.innerHTML = authorLink;
     /* [NEW] check if this link is NOT already in allTags */
@@ -202,16 +216,18 @@ function generateAuthors(){
   /* [NEW] find list of tags in right column */
   const authorList = document.querySelector('.authors');
   /* [NEW] create variable for all links HTML code */
-  let allAuthorsHTML = '';
+  const allAuthorsData = {authors: []};
   /* [NEW] START LOOP: for each tag in allTags: */
   for(let authorName in allAuthors){
     /* [NEW] generate code of a link and add it in to allTagsHTML*/
-    const authorLinkHTML = '<li><a href="#author-' + authorName + '">' + authorName + '</a> (' + allAuthors[authorName] + ')</li>';
-    allAuthorsHTML += authorLinkHTML;
+    allAuthorsData.authors.push({
+      author: authorName,
+      count: allAuthors[authorName]
+    });
     /* [NEW] END LOOP: for each tag in allTags: */
   }
   /* [NEW] add html from allTagsHTML to tagList */
-  authorList.innerHTML = allAuthorsHTML;
+  authorList.innerHTML = templates.authorLinkList(allAuthorsData);
 }
 
 generateAuthors();
